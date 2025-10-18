@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bee Swarm Simulator Macro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .recipe-selector {
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        select, input, button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        select {
+            min-width: 250px;
+        }
+
+        input[type="number"] {
+            width: 100px;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .add-recipe-btn {
+            background: #2196F3;
+        }
+
+        .add-recipe-btn:hover {
+            background: #0b7dda;
+        }
+
+        .selected-recipes {
+            margin-top: 20px;
+            min-height: 20px;
+        }
+
+        .recipe-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .recipe-item select {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .remove-recipe {
+            background: #f44336;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .inventory-section {
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-auto-flow: column;
+            gap: 0;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 900px) {
+            .inventory-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .inventory-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .inventory-item {
+            display: grid;
+            grid-template-columns: 150px 1fr 90px;
+            align-items: center;
+            gap: 0;
+            padding: 10px 15px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .inventory-item:last-child {
+            border-bottom: none;
+        }
+
+        .inventory-item label {
+            font-weight: normal;
+            white-space: nowrap;
+        }
+
+        .inventory-item .dots {
+            border-bottom: 2px dotted #ddd;
+            margin: 0 8px;
+        }
+
+        .inventory-item input {
+            width: 90px;
+            justify-self: end;
+            text-align: right;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .materials-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .materials-table th,
+        .materials-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .materials-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .materials-table tr:hover {
+            background: #fafafa;
+        }
+
+        .material-name {
+            font-weight: 600;
+            display: block;
+        }
+
+        .used-in {
+            font-size: 12px;
+            color: #999;
+            font-style: italic;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .needed {
+            color: #f44336;
+            font-weight: 600;
+        }
+
+        .complete {
+            color: #4CAF50;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4CAF50;
+        }
+
+        .tree-node {
+            margin: 10px 0;
+            padding: 12px 15px;
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .tree-node.incomplete {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+
+        .tree-node.partial {
+            border-left-color: #FFC107;
+            background: #fff8e1;
+        }
+
+        .tree-node.complete {
+            background: #f1f8e9;
+        }
+
+        .tree-children {
+            margin-left: 30px;
+            border-left: 2px solid #ddd;
+            padding-left: 20px;
+        }
+
+        .tree-node-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 8px;
+        }
+
+        .tree-node-title {
+            font-weight: 600;
+            font-size: 16px;
+            min-width: 150px;
+        }
+
+        .tree-node-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .tree-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tree-stat-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tree-stat-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .tree-stat-value.filled {
+            color: #4CAF50;
+        }
+
+        .tree-stat-value.needed {
+            color: #f44336;
+        }
+
+        .tree-progress-mini {
+            flex: 1;
+            max-width: 200px;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .tree-progress-mini-fill {
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bee Swarm Simulator Macro</h1>
+
+        <div class="recipe-selector">
+            <h2>Add Crafting Materials</h2>
+            <div class="selected-recipes" id="selectedRecipes"></div>
+            <div class="input-group" style="margin-top: 15px;">
+                <button class="add-recipe-btn" onclick="addRecipe()">Add to List</button>
+            </div>
+            <div style="margin-top: 15px;">
+                <button onclick="calculate()">Calculate</button>
+                <button onclick="clearRecipes()" style="background: #666;">Clear List</button>
+            </div>
+        </div>
+
+        <div class="inventory-section">
+            <h2>Your Inventory</h2>
+            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <button onclick="exportInventory()">Export Inventory</button>
+                <button onclick="importInventory()" style="background: #2196F3;">Import Inventory</button>
+                <button onclick="clearInventory()" style="background: #f44336;">Clear Inventory</button>
+            </div>
+            <div class="inventory-grid" id="inventoryGrid"></div>
+        </div>
+
+        <div class="results-section hidden" id="resultsSection">
+            <h2>Materials Needed</h2>
+            <table class="materials-table" id="materialsTable">
+                <thead>
+                    <tr>
+                        <th>Material</th>
+                        <th>Original Need</th>
+                        <th>Need (with inventory)</th>
+                        <th>Have</th>
+                        <th>Still Need</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+                <tbody id="materialsTableBody"></tbody>
+            </table>
+
+            <h2 style="margin-top: 30px;">Crafting Tree</h2>
+            <div id="craftingTree" style="background: #fafafa; padding: 20px; border-radius: 6px; overflow-x: auto;"></div>
+        </div>
+    </div>
+
+    <script>
+        const recipes = {
+            "Red Extract": { "Royal Jellies": 10, "Strawberries": 50 },
+            "Blue Extract": { "Royal Jellies": 10, "Blueberries": 50 },
+            "Enzymes": { "Royal Jellies": 10, "Pineapples": 50 },
+            "Oil": { "Royal Jellies": 10, "Sunflower Seeds": 50 },
+            "Glue": { "Royal Jellies": 10, "Gumdrops": 50 },
+            "Tropical Drink": { "Coconuts": 10, "Enzymes": 2, "Oil": 2 },
+            "Gumdrops": { "Pineapples": 3, "Strawberries": 3, "Blueberries": 3 },
+            "Moon Charms": { "Royal Jellies": 1, "Pineapples": 5, "Gumdrops": 5 },
+            "Glitter": { "Moon Charms": 25, "Magic Beans": 1 },
+            "Star Jelly": { "Royal Jellies": 100, "Glitter": 3 },
+            "Purple Potion": { "Neonberries": 3, "Red Extract": 3, "Blue Extract": 3, "Glue": 3 },
+            "Soft Wax": { "Honeysuckles": 5, "Oil": 1, "Enzymes": 1, "Royal Jellies": 10 },
+            "Hard Wax": { "Soft Wax": 3, "Enzymes": 3, "Bitterberries": 33, "Royal Jellies": 33 },
+            "Swirled Wax": { "Hard Wax": 3, "Soft Wax": 9, "Purple Potion": 6, "Royal Jellies": 3333 },
+            "Caustic Wax": { "Hard Wax": 5, "Enzymes": 5, "Neonberries": 25, "Royal Jellies": 5252 },
+            "Field Dice": { "Soft Wax": 1, "Whirligig": 1, "Red Extract": 1, "Blue Extract": 1 },
+            "Smooth Dice": { "Field Dice": 3, "Soft Wax": 3, "Whirligig": 3, "Oil": 3 },
+            "Loaded Dice": { "Smooth Dice": 3, "Hard Wax": 3, "Oil": 3, "Glue": 1 },
+            "Super Smoothie": { "Neonberries": 3, "Star Jelly": 3, "Purple Potion": 3, "Tropical Drink": 6 },
+            "Turpentine": { "Super Smoothie": 10, "Caustic Wax": 10, "Star Jelly": 100, "Honeysuckles": 1000 }
+        };
+
+        const inventoryOrder = [
+            "Gumdrops", "Coconuts", "Honeysuckles", "Whirligig", "Field Dice", 
+            "Smooth Dice", "Loaded Dice", "Red Extract", "Blue Extract", "Glitter", 
+            "Glue", "Oil", "Enzymes", "Tropical Drink", "Purple Potion", 
+            "Super Smoothie", "Magic Beans", "Sunflower Seeds", "Strawberries", 
+            "Pineapples", "Blueberries", "Bitterberries", "Neonberries", 
+            "Moon Charms", "Soft Wax", "Hard Wax", "Caustic Wax", "Swirled Wax", 
+            "Turpentine", "Royal Jellies", "Star Jelly"
+        ];
+
+        let selectedRecipes = [];
+        let inventory = {};
+
+        function init() {
+            const allMaterials = new Set();
+
+            Object.keys(recipes).forEach(recipe => {
+                allMaterials.add(recipe);
+            });
+
+            Object.values(recipes).forEach(recipe => {
+                Object.keys(recipe).forEach(material => {
+                    allMaterials.add(material);
+                });
+            });
+
+            const savedInventory = localStorage.getItem('bssInventory');
+            if (savedInventory) {
+                try {
+                    inventory = JSON.parse(savedInventory);
+                } catch (e) {
+                    inventory = {};
+                }
+            }
+
+            const orderedMaterials = [];
+            
+            inventoryOrder.forEach(material => {
+                if (allMaterials.has(material)) {
+                    orderedMaterials.push(material);
+                    allMaterials.delete(material);
+                }
+            });
+            
+            Array.from(allMaterials).sort().forEach(material => {
+                orderedMaterials.push(material);
+            });
+
+            const inventoryGrid = document.getElementById('inventoryGrid');
+            
+            // Calculate how many items per column (assuming 3 columns for desktop)
+            // This will be adjusted by CSS media queries for smaller screens
+            const columns = window.innerWidth > 900 ? 3 : (window.innerWidth > 600 ? 2 : 1);
+            const itemsPerColumn = Math.ceil(orderedMaterials.length / columns);
+            
+            // Set the grid to have that many rows
+            inventoryGrid.style.gridTemplateRows = `repeat(${itemsPerColumn}, auto)`;
+            
+            orderedMaterials.forEach(material => {
+                const div = document.createElement('div');
+                div.className = 'inventory-item';
+                const savedValue = inventory[material] || 0;
+                div.innerHTML = `
+                    <label>${material}</label>
+                    <div class="dots"></div>
+                    <input type="number" id="inv_${material.replace(/\s/g, '_')}" value="${savedValue}" min="0" onchange="saveInventory(); updateCalculations();">
+                `;
+                inventoryGrid.appendChild(div);
+                if (!inventory[material]) {
+                    inventory[material] = 0;
+                }
+            });
+        }
+
+        function saveInventory() {
+            Object.keys(inventory).forEach(material => {
+                const input = document.getElementById(`inv_${material.replace(/\s/g, '_')}`);
+                if (input) {
+                    inventory[material] = parseInt(input.value) || 0;
+                }
+            });
+            localStorage.setItem('bssInventory', JSON.stringify(inventory));
+        }
+
+        function exportInventory() {
+            saveInventory();
+            const dataStr = JSON.stringify(inventory, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'bss-inventory.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importInventory() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const importedInventory = JSON.parse(event.target.result);
+                        
+                        Object.keys(inventory).forEach(material => {
+                            if (importedInventory[material] !== undefined) {
+                                inventory[material] = importedInventory[material];
+                                const input = document.getElementById(`inv_${material.replace(/\s/g, '_')}`);
+                                if (input) {
+                                    input.value = inventory[material];
+                                }
+                            }
+                        });
+                        
+                        saveInventory();
+                        updateCalculations();
+                        alert('Inventory imported successfully!');
+                    } catch (error) {
+                        alert('Error importing inventory: Invalid JSON file');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function clearInventory() {
+            if (!confirm('Are you sure you want to clear your entire inventory?')) return;
+            
+            Object.keys(inventory).forEach(material => {
+                inventory[material] = 0;
+                const input = document.getElementById(`inv_${material.replace(/\s/g, '_')}`);
+                if (input) {
+                    input.value = 0;
+                }
+            });
+            saveInventory();
+            updateCalculations();
+        }
+
+        function addRecipe() {
+            selectedRecipes.push({ name: '', quantity: 1 });
+            updateSelectedRecipes();
+        }
+
+        function updateSelectedRecipes() {
+            const container = document.getElementById('selectedRecipes');
+            container.innerHTML = '';
+
+            selectedRecipes.forEach((recipe, index) => {
+                const div = document.createElement('div');
+                div.className = 'recipe-item';
+
+                // Get all materials from inventory (includes both recipe items and raw materials)
+                const allMaterials = Object.keys(inventory).sort();
+
+                let optionsHtml = '<option value="">-- Select an item --</option>';
+
+                // Add section headers and items
+                let recipeItems = [];
+                let rawMaterials = [];
+
+                allMaterials.forEach(material => {
+                    if (recipes[material]) {
+                        recipeItems.push(material);
+                    } else {
+                        rawMaterials.push(material);
+                    }
+                });
+
+                // Add recipe items
+                if (recipeItems.length > 0) {
+                    optionsHtml += '<optgroup label="Craftable Items">';
+                    recipeItems.forEach(recipeName => {
+                        const selected = recipeName === recipe.name ? 'selected' : '';
+                        optionsHtml += `<option value="${recipeName}" ${selected}>${recipeName}</option>`;
+                    });
+                    optionsHtml += '</optgroup>';
+                }
+
+                // Add raw materials
+                if (rawMaterials.length > 0) {
+                    optionsHtml += '<optgroup label="Raw Materials">';
+                    rawMaterials.forEach(materialName => {
+                        const selected = materialName === recipe.name ? 'selected' : '';
+                        optionsHtml += `<option value="${materialName}" ${selected}>${materialName}</option>`;
+                    });
+                    optionsHtml += '</optgroup>';
+                }
+
+                div.innerHTML = `
+                    <label>Item:</label>
+                    <select onchange="updateRecipeName(${index}, this.value)">${optionsHtml}</select>
+                    <label>Quantity:</label>
+                    <input type="number" value="${recipe.quantity}" min="1" onchange="updateRecipeQuantity(${index}, this.value)">
+                    <button class="remove-recipe" onclick="removeRecipe(${index})">Remove</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateRecipeName(index, value) {
+            selectedRecipes[index].name = value;
+        }
+
+        function updateRecipeQuantity(index, value) {
+            selectedRecipes[index].quantity = parseInt(value) || 1;
+        }
+
+        function removeRecipe(index) {
+            selectedRecipes.splice(index, 1);
+            updateSelectedRecipes();
+        }
+
+        function clearRecipes() {
+            selectedRecipes = [];
+            updateSelectedRecipes();
+            document.getElementById('resultsSection').classList.add('hidden');
+        }
+
+        function calculateMaterials(recipeName, quantity, breakdown = {}, currentInventory = null, usageTracking = null) {
+            const inv = currentInventory || JSON.parse(JSON.stringify(inventory));
+            const usage = usageTracking || {};
+
+            // First, try to use existing inventory for this item
+            if (inv[recipeName] > 0) {
+                const used = Math.min(inv[recipeName], quantity);
+                quantity -= used;
+                inv[recipeName] -= used;
+
+                // Track how much we used from inventory
+                if (!usage[recipeName]) {
+                    usage[recipeName] = { used: 0, needed: 0 };
+                }
+                usage[recipeName].used += used;
+
+                if (quantity <= 0) {
+                    return breakdown;
+                }
+            }
+
+            // Track total needed for this material
+            if (!usage[recipeName]) {
+                usage[recipeName] = { used: 0, needed: 0 };
+            }
+            usage[recipeName].needed += quantity;
+
+            // If this item doesn't have a recipe, it's a base material we need to gather
+            if (!recipes[recipeName]) {
+                breakdown[recipeName] = (breakdown[recipeName] || 0) + quantity;
+                return breakdown;
+            }
+
+            // This item has a recipe, so we need to craft it
+            // Break down into its component materials
+            const recipe = recipes[recipeName];
+            for (const [material, amount] of Object.entries(recipe)) {
+                calculateMaterials(material, amount * quantity, breakdown, inv, usage);
+            }
+
+            return breakdown;
+        }
+
+        function calculateAllMaterials(recipeName, quantity, allItems = {}) {
+            allItems[recipeName] = (allItems[recipeName] || 0) + quantity;
+
+            if (!recipes[recipeName]) {
+                return allItems;
+            }
+
+            const recipe = recipes[recipeName];
+            for (const [material, amount] of Object.entries(recipe)) {
+                calculateAllMaterials(material, amount * quantity, allItems);
+            }
+
+            return allItems;
+        }
+
+        function calculate() {
+            if (selectedRecipes.length === 0) {
+                alert('Please add at least one item to the list');
+                return;
+            }
+
+            const emptyItems = selectedRecipes.filter(r => !r.name);
+            if (emptyItems.length > 0) {
+                alert('Please select an item for all rows in the list');
+                return;
+            }
+
+            updateCalculations();
+        }
+
+        // Calculate how much of a specific material is needed after using inventory of OTHER items
+        function calculateNeedForMaterial(targetMaterial, selectedRecipes, inventory) {
+            let totalNeeded = 0;
+
+            function recurse(recipeName, quantity, inv, excludeMaterial) {
+                // Use inventory of this item ONLY if it's not the target material
+                if (recipes[recipeName] && inv[recipeName] > 0 && recipeName !== excludeMaterial) {
+                    const used = Math.min(inv[recipeName], quantity);
+                    quantity -= used;
+                    inv[recipeName] -= used;
+
+                    if (quantity <= 0) {
+                        return;
+                    }
+                }
+
+                // If we reached the target material, add to total
+                if (recipeName === targetMaterial) {
+                    totalNeeded += quantity;
+                    return;
+                }
+
+                // Break down further if has recipe
+                if (recipes[recipeName]) {
+                    const recipe = recipes[recipeName];
+                    for (const [material, amount] of Object.entries(recipe)) {
+                        recurse(material, amount * quantity, inv, excludeMaterial);
+                    }
+                }
+            }
+
+            const inv = JSON.parse(JSON.stringify(inventory));
+            selectedRecipes.forEach(recipe => {
+                recurse(recipe.name, recipe.quantity, inv, targetMaterial);
+            });
+
+            return totalNeeded;
+        }
+
+        function updateCalculations() {
+            if (selectedRecipes.length === 0) return;
+
+            // Sync inventory from UI
+            Object.keys(inventory).forEach(material => {
+                const input = document.getElementById(`inv_${material.replace(/\s/g, '_')}`);
+                if (input) {
+                    inventory[material] = parseInt(input.value) || 0;
+                }
+            });
+
+            // Calculate total materials needed (without any inventory consideration)
+            let allMaterialsOriginal = {};
+            selectedRecipes.forEach(recipe => {
+                calculateAllMaterials(recipe.name, recipe.quantity, allMaterialsOriginal);
+            });
+
+            // For each material, calculate how much is needed after using inventory of OTHER materials
+            let materialsNeededToCraft = {};
+            Object.keys(allMaterialsOriginal).forEach(material => {
+                materialsNeededToCraft[material] = calculateNeedForMaterial(material, selectedRecipes, inventory);
+            });
+
+            // Calculate base materials needed (with full inventory consideration)
+            let baseMaterials = {};
+            let sharedInventory2 = JSON.parse(JSON.stringify(inventory));
+            let usageTracking = {};
+
+            selectedRecipes.forEach(recipe => {
+                calculateMaterials(recipe.name, recipe.quantity, baseMaterials, sharedInventory2, usageTracking);
+            });
+
+            displayResults(allMaterialsOriginal, materialsNeededToCraft, baseMaterials, usageTracking);
+            displayCraftingTree(sharedInventory2);
+
+            document.getElementById('resultsSection').classList.remove('hidden');
+        }
+
+        function buildUsageMap(selectedRecipes) {
+            // Track what each material is directly used in
+            const usageMap = {};
+
+            // First, mark the top-level goals
+            selectedRecipes.forEach(recipe => {
+                if (!usageMap[recipe.name]) {
+                    usageMap[recipe.name] = [];
+                }
+                usageMap[recipe.name].push('[Your Goal]');
+            });
+
+            // Build a map of what materials are used in what recipes
+            function trackUsage(recipeName, usedIn) {
+                if (!recipes[recipeName]) return;
+
+                const recipe = recipes[recipeName];
+                for (const [material, amount] of Object.entries(recipe)) {
+                    if (!usageMap[material]) {
+                        usageMap[material] = [];
+                    }
+                    if (!usageMap[material].includes(recipeName)) {
+                        usageMap[material].push(recipeName);
+                    }
+                    trackUsage(material, recipeName);
+                }
+            }
+
+            selectedRecipes.forEach(recipe => {
+                trackUsage(recipe.name, '[Your Goal]');
+            });
+
+            return usageMap;
+        }
+
+        function displayResults(allMaterialsOriginal, materialsNeededToCraft, baseMaterials, usageTracking) {
+            const tbody = document.getElementById('materialsTableBody');
+            tbody.innerHTML = '';
+
+            const usageMap = buildUsageMap(selectedRecipes);
+
+            const craftableItems = [];
+            const baseMaterialsList = [];
+
+            // Combine all materials from both calculations
+            const allMaterialsSet = new Set([
+                ...Object.keys(allMaterialsOriginal),
+                ...Object.keys(materialsNeededToCraft)
+            ]);
+
+            allMaterialsSet.forEach(material => {
+                if (recipes[material]) {
+                    craftableItems.push(material);
+                } else {
+                    baseMaterialsList.push(material);
+                }
+            });
+
+            craftableItems.sort();
+            baseMaterialsList.sort();
+
+            if (craftableItems.length > 0) {
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = `
+                    <td colspan="6" style="background: #e8f5e9; font-weight: bold; padding: 15px 12px;">Craftable Items</td>
+                `;
+                tbody.appendChild(headerRow);
+
+                craftableItems.forEach(material => {
+                    const originalNeed = allMaterialsOriginal[material] || 0;
+                    const needWithInventory = materialsNeededToCraft[material] || 0;
+                    const have = inventory[material] || 0;
+                    const stillNeed = Math.max(0, needWithInventory - have);
+                    const progress = needWithInventory > 0 ? (Math.min(have, needWithInventory) / needWithInventory * 100) : 100;
+
+                    const usedIn = usageMap[material] || [];
+                    const usedInText = usedIn.length > 0 ? `Used in: ${usedIn.join(', ')}` : '';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <span class="material-name">${material}</span>
+                            ${usedInText ? `<span class="used-in">${usedInText}</span>` : ''}
+                        </td>
+                        <td>${originalNeed.toLocaleString()}</td>
+                        <td><strong>${needWithInventory.toLocaleString()}</strong></td>
+                        <td>${have.toLocaleString()}</td>
+                        <td class="${stillNeed > 0 ? 'needed' : 'complete'}">${stillNeed.toLocaleString()}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%">
+                                    ${Math.round(progress)}%
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            if (baseMaterialsList.length > 0) {
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = `
+                    <td colspan="6" style="background: #e3f2fd; font-weight: bold; padding: 15px 12px;">Base Materials</td>
+                `;
+                tbody.appendChild(headerRow);
+
+                baseMaterialsList.forEach(material => {
+                    const originalNeed = allMaterialsOriginal[material] || 0;
+                    const needWithInventory = materialsNeededToCraft[material] || 0;
+                    const have = inventory[material] || 0;
+                    const stillNeed = Math.max(0, needWithInventory - have);
+                    const progress = needWithInventory > 0 ? (Math.min(have, needWithInventory) / needWithInventory * 100) : 100;
+
+                    const usedIn = usageMap[material] || [];
+                    const usedInText = usedIn.length > 0 ? `Used in: ${usedIn.join(', ')}` : '';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <span class="material-name">${material}</span>
+                            ${usedInText ? `<span class="used-in">${usedInText}</span>` : ''}
+                        </td>
+                        <td>${originalNeed.toLocaleString()}</td>
+                        <td><strong>${needWithInventory.toLocaleString()}</strong></td>
+                        <td>${have.toLocaleString()}</td>
+                        <td class="${stillNeed > 0 ? 'needed' : 'complete'}">${stillNeed.toLocaleString()}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%">
+                                    ${Math.round(progress)}%
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+
+        function displayCraftingTree(inventoryAfterUse) {
+            const container = document.getElementById('craftingTree');
+            container.innerHTML = '';
+
+            // Create a fresh copy of inventory for tree display
+            let treeInventory = JSON.parse(JSON.stringify(inventory));
+
+            selectedRecipes.forEach(recipe => {
+                const treeHtml = buildTreeNode(recipe.name, recipe.quantity, 0, treeInventory);
+                container.innerHTML += treeHtml;
+            });
+        }
+
+        function buildTreeNode(itemName, quantity, depth, treeInventory) {
+            const originalHave = inventory[itemName] || 0;
+            const currentHave = treeInventory[itemName] || 0;
+
+            // Track how much we'll use from inventory
+            let usedFromInventory = Math.min(currentHave, quantity);
+            let remainingToCraft = quantity - usedFromInventory;
+
+            // Update the shared tree inventory
+            treeInventory[itemName] = currentHave - usedFromInventory;
+
+            // Calculate what we still need after using what we have left
+            const haveForThis = Math.min(originalHave - (originalHave - currentHave), quantity);
+            const stillNeed = Math.max(0, remainingToCraft - Math.max(0, currentHave - usedFromInventory));
+
+            const progress = quantity > 0 ? ((quantity - stillNeed) / quantity * 100) : 100;
+
+            let statusClass = 'complete';
+            if (usedFromInventory === 0 && remainingToCraft === quantity) statusClass = 'incomplete';
+            else if (usedFromInventory > 0 && remainingToCraft > 0) statusClass = 'partial';
+
+            let html = `
+                <div class="tree-node ${statusClass}">
+                    <div class="tree-node-header">
+                        <span class="tree-node-title">${itemName}</span>
+                        <div class="tree-node-stats">
+                            <div class="tree-stat">
+                                <span class="tree-stat-label">Total Need</span>
+                                <span class="tree-stat-value">${quantity.toLocaleString()}</span>
+                            </div>
+                            <div class="tree-stat">
+                                <span class="tree-stat-label">From Inventory</span>
+                                <span class="tree-stat-value filled">${usedFromInventory.toLocaleString()}</span>
+                            </div>
+                            <div class="tree-stat">
+                                <span class="tree-stat-label">Need to Craft</span>
+                                <span class="tree-stat-value ${remainingToCraft > 0 ? 'needed' : ''}">${remainingToCraft.toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <div class="tree-progress-mini">
+                            <div class="tree-progress-mini-fill" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+            `;
+
+            // Only show children if we need to craft this item (not just using inventory)
+            // and if it has a recipe
+            if (recipes[itemName] && remainingToCraft > 0 && depth < 10) {
+                html += '<div class="tree-children">';
+                const recipe = recipes[itemName];
+                for (const [material, amount] of Object.entries(recipe)) {
+                    const totalNeeded = amount * remainingToCraft;
+                    html += buildTreeNode(material, totalNeeded, depth + 1, treeInventory);
+                }
+                html += '</div>';
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        init();
+    </script>
+</body>
+</html>
